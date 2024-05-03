@@ -1756,7 +1756,19 @@ int ttf_load_from_file(const char *filename, ttf_t **output, bool headers_only)
     *output = NULL;
 
     /* open file and get it size */
+#ifdef _WIN32
+    // Convert the filename to wide-character string
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, filename, -1, NULL, 0);
+    wchar_t *wfilename = (wchar_t *)malloc(wlen * sizeof(wchar_t));
+    MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfilename, wlen);
+
+    // Open the file using wide-character function
+    f = _wfopen(wfilename, L"rb");
+    free(wfilename);
+#else
+    // Open the file using standard function
     f = fopen(filename, "rb");
+#endif
     check(f != NULL, TTF_ERR_OPEN);
     check(fread(&sfntVersion, 1, 4, f) == 4, TTF_ERR_FMT);
     check(big32toh(sfntVersion) == 0x00010000, TTF_ERR_FMT);
